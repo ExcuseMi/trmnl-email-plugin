@@ -146,13 +146,36 @@ def get_allowed_ips():
 
 
 def get_client_ip():
-    """Get the real client IP address, accounting for proxies"""
-    if request.headers.get('X-Forwarded-For'):
-        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
-    if request.headers.get('X-Real-IP'):
-        return request.headers.get('X-Real-IP').strip()
+    """Get the real client IP address, accounting for Cloudflare Tunnel"""
+    # Cloudflare Tunnel passes real IP in CF-Connecting-IP header
+    # Priority: CF-Connecting-IP > X-Forwarded-For > X-Real-IP > remote_addr
+
+    # Debug: Log all relevant headers
+    headers_debug = {
+        'CF-Connecting-IP': request.headers.get('CF-Connecting-IP'),
+        'X-Forwarded-For': request.headers.get('X-Forwarded-For'),
+        'X-Real-IP': request.headers.get('X-Real-IP'),
+        'Remote-Addr': request.remote_addr
+    }
+    logger.debug(f"IP detection headers: {headers_debug}")
+
+    # Check CF-Connecting-IP FIRST (Cloudflare Tunnel)
     if request.headers.get('CF-Connecting-IP'):
-        return request.headers.get('CF-Connecting-IP').strip()
+        ip = request.headers.get('CF-Connecting-IP').strip()
+        logger.debug(f"Using CF-Connecting-IP: {ip}")
+        return ip
+
+    if request.headers.get('X-Forwarded-For'):
+        ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
+        logger.debug(f"Using X-Forwarded-For: {ip}")
+        return ip
+
+    if request.headers.get('X-Real-IP'):
+        ip = request.headers.get('X-Real-IP').strip()
+        logger.debug(f"Using X-Real-IP: {ip}")
+        return ip
+
+    logger.debug(f"Using remote_addr: {request.remote_addr}")
     return request.remote_addr
 
 
