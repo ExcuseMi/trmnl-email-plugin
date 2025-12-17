@@ -439,8 +439,6 @@ async def fetch_email_messages(server, port, username, password, folder, limit, 
 def get_request_params():
     """Extract and validate request parameters from GET or POST"""
     if request.method == 'POST':
-        if not request.is_json:
-            return None, {'error': 'Content-Type must be application/json for POST requests'}, 400
         data = request.json
     else:
         data = request.args
