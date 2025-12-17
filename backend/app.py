@@ -237,6 +237,17 @@ def parse_message_data(header_data, msg_id, is_read=True):
     subject = decode_mime_header(email_message.get('Subject', 'No Subject'))
     date_str = email_message.get('Date', '')
 
+    # Extract sender email from From header
+    sender_email = ""
+    if from_header:
+        decoded_from = decode_mime_header(from_header)
+        # Extract email from "Name <email@example.com>" or just "email@example.com"
+        if '<' in decoded_from and '>' in decoded_from:
+            sender_email = decoded_from.split('<')[1].split('>')[0].strip()
+        else:
+            # Assume the whole thing is an email address
+            sender_email = decoded_from.strip()
+
     # Parse timestamp
     try:
         if date_str:
@@ -249,6 +260,7 @@ def parse_message_data(header_data, msg_id, is_read=True):
 
     return {
         'sender': sender,
+        'sender_email': sender_email,
         'subject': subject,
         'timestamp': timestamp_iso,
         'msg_id': msg_id,
