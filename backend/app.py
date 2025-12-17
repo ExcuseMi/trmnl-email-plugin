@@ -19,20 +19,28 @@ import logging
 import sys
 
 
-# Configure logging
+# Configure logging for Docker/production
+log_handler = logging.StreamHandler(sys.stdout)
+log_handler.setFormatter(logging.Formatter(
+    '%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+))
+
+# Configure root logger
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.StreamHandler()  # Ensure logs go to stdout
-    ]
+    handlers=[log_handler],
+    force=True  # Override any existing configuration
 )
+
 logger = logging.getLogger(__name__)
 
-# Set Hypercorn/Werkzeug loggers to INFO as well
-logging.getLogger('hypercorn.error').setLevel(logging.INFO)
-logging.getLogger('hypercorn.access').setLevel(logging.INFO)
+# Disable Flask's default logger to avoid duplicates
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
+# Ensure logs are flushed immediately (important for Docker)
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 
 # Configuration
 ENABLE_IP_WHITELIST = os.getenv('ENABLE_IP_WHITELIST', 'true').lower() == 'true'
@@ -252,8 +260,9 @@ def parse_message_data(header_data, msg_id, is_read=True):
         # parseaddr returns (name, email) tuple
         _, email_addr = parseaddr(decoded_from)
         sender_email = email_addr if email_addr else ""
-
-    logger.debug(f"Parsed message {msg_id}: sender={sender}, email={sender_email}, subject={subject}")
+        logger.debug(f"Message {msg_id}: From header='{from_header}' -> sender='{sender}', email='{sender_email}'")
+    else:
+        logger.warning(f"Message {msg_id}: No From header found!")
 
     # Parse timestamp
     try:
@@ -265,7 +274,7 @@ def parse_message_data(header_data, msg_id, is_read=True):
     except Exception:
         timestamp_iso = datetime.now().isoformat()
 
-    return {
+    message_dict = {
         'sender': sender,
         'sender_email': sender_email,
         'subject': subject,
@@ -273,6 +282,11 @@ def parse_message_data(header_data, msg_id, is_read=True):
         'msg_id': msg_id,
         'read': is_read
     }
+
+    # Log the final message dict to verify sender_email is included
+    logger.debug(f"Created message dict: {message_dict}")
+
+    return message_dict
 
 
 async def batch_fetch_flags(client, message_ids):
