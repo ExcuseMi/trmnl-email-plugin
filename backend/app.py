@@ -477,8 +477,9 @@ async def fetch_email_messages(server, port, username, password, folder, limit, 
 
         messages = []
 
-        # Fetch messages sequentially
-        for msg_id in message_ids:
+        # OPTIMIZATION: Fetch messages in parallel (batches of 10)
+        async def fetch_single_message(msg_id):
+            """Fetch a single message's headers"""
             try:
                 fetch_response = await client.fetch(
                     msg_id,
@@ -486,11 +487,11 @@ async def fetch_email_messages(server, port, username, password, folder, limit, 
                 )
 
                 if fetch_response.result != 'OK':
-                    continue
+                    return None
 
                 header_data = extract_header_data(fetch_response)
                 if not header_data:
-                    continue
+                    return None
 
                 # Get flags from batch fetch
                 flags = flags_dict.get(msg_id, {'read': True, 'flagged': False})
@@ -498,12 +499,22 @@ async def fetch_email_messages(server, port, username, password, folder, limit, 
                 is_flagged = flags['flagged']
 
                 message = parse_message_data(header_data, msg_id, is_read, is_flagged)
-                if message:
-                    messages.append(message)
+                return message
 
             except Exception as e:
                 logger.error(f"Error processing message {msg_id}: {e}")
-                continue
+                return None
+
+        # Fetch in batches of 10 for better performance without overwhelming the server
+        batch_size = 10
+        for i in range(0, len(message_ids), batch_size):
+            batch = message_ids[i:i + batch_size]
+            batch_results = await asyncio.gather(*[fetch_single_message(msg_id) for msg_id in batch])
+
+            # Add non-None results
+            for message in batch_results:
+                if message:
+                    messages.append(message)
 
         end_time = time.time()
         logger.info(f"Fetched {len(messages)} messages in {end_time - start_time:.2f} seconds")
