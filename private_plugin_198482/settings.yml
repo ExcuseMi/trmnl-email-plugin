@@ -6,7 +6,7 @@ static_data: ''
 polling_verb: post
 polling_url: https://trmnl.bettens.dev/email/messages
 polling_headers: content-type=application/json
-polling_body: "{\r\n  {% if provider == \"gmail\" %}\r\n  \"server\": \"imap.gmail.com\",\r\n  \"port\": 993,\r\n  \"password\": {{gmail_password | json}}\r\n  {% elsif provider == \"outlook\" %}\r\n  \"server\": \"outlook.office365.com\",\r\n  \"port\": 993,\r\n  \"password\": {{outlook_password | json}}\r\n  {% elsif provider == \"yahoo\" %}\r\n  \"server\": \"imap.mail.yahoo.com\",\r\n  \"port\": 993,\r\n  \"password\": {{yahoo_password | json}}\r\n  {% elsif provider == \"icloud\" %}\r\n  \"server\": \"imap.mail.me.com\",\r\n  \"port\": 993,\r\n  \"password\": {{icloud_password | json}}\r\n  {% elsif provider == \"custom\" %}\r\n  \"server\": {{custom_server | json}},\r\n  \"port\": {{custom_port | default: 993 | plus: 0}},\r\n  \"password\": {{custom_password | json}}\r\n  {% endif %},\r\n  \"username\": {{email | json}},\r\n  \"folder\": {{folder | default: \"INBOX\" | json}},\r\n  \"limit\": {{limit | default: 10 | plus: 0}},\r\n  \"unread_only\": {{unread_only | default: false}},\r\n  \"flagged_only\": {{flagged_only | default: false}}\r\n  {% if provider == \"gmail\" and gmail_category and gmail_category != \"\" %},\r\n  \"gmail_category\": {{gmail_category | json}}\r\n  {% endif %}\r\n  {% if from_emails and from_emails != \"\" %},\r\n  \"from_emails\": {{from_emails | json}}\r\n  {% endif %}\r\n}"
+polling_body: "{\r\n  {% if provider == \"gmail\" %}\r\n  \"server\": \"imap.gmail.com\",\r\n  \"port\": 993,\r\n  \"password\": {{ gmail_password | json }}\r\n  {% elsif provider == \"outlook\" %}\r\n  \"server\": \"outlook.office365.com\",\r\n  \"port\": 993,\r\n  \"password\": {{ outlook_password | json }}\r\n  {% elsif provider == \"yahoo\" %}\r\n  \"server\": \"imap.mail.yahoo.com\",\r\n  \"port\": 993,\r\n  \"password\": {{ yahoo_password | json }}\r\n  {% elsif provider == \"icloud\" %}\r\n  \"server\": \"imap.mail.me.com\",\r\n  \"port\": 993,\r\n  \"password\": {{ icloud_password | json }}\r\n  {% elsif provider == \"custom\" %}\r\n  \"server\": {{ custom_server | json }},\r\n  \"port\": {{ custom_port | default: 993 | plus: 0 }},\r\n  \"password\": {{ custom_password | json }}\r\n  {% endif %},\r\n\r\n  \"username\": {{ email | json }},\r\n  \"folder\": {{ folder | default: \"INBOX\" | json }},\r\n  \"limit\": {{ limit | default: 10 | plus: 0 }},\r\n  \"unread_only\": {% if unread_only == \"yes\" %}true{% else %}false{% endif %},\r\n  \"flagged_only\": {% if flagged_only == \"yes\" %}true{% else %}false{% endif %}\r\n\r\n  {% if provider == \"gmail\" and gmail_category and gmail_category != \"\" %},\r\n  \"gmail_category\": {{ gmail_category | json }}\r\n  {% endif %}\r\n\r\n  {% if from_emails and from_emails != \"\" %},\r\n  \"from_emails\": {{ from_emails | json }}\r\n  {% endif %}\r\n}"
 id: 198482
 custom_fields:
 - keyname: provider
@@ -117,31 +117,43 @@ custom_fields:
   description: How many emails to display (max 50)
   default: 10
 - keyname: unread_only
-  field_type: boolean
-  name: Show Only Unread Messages
-  default: ''
+  field_type: select
+  name: Unread Messages Only
+  default: 'no'
   optional: true
-- keyname: read_subject_regular
-  field_type: boolean
-  name: Display Read Subject As Regular Text
-  default: ''
-  optional: true
-- keyname: show_sender_email
-  field_type: boolean
-  name: Show Sender  Email  Address Instead Of Name
-  default: ''
-  optional: true
+  options:
+  - 'Yes': 'yes'
+  - 'No': 'no'
 - keyname: flagged_only
-  field_type: boolean
+  field_type: select
   name: Flagged/Important Only
   description: Only show flagged/starred emails
-  default: ''
+  default: 'no'
   optional: true
+  options:
+  - 'Yes': 'yes'
+  - 'No': 'no'
 - keyname: from_emails
   field_type: multi_string
   name: Filter by Sendering emails
-  description: 'Comma-separated email addresses. Only show emails from these senders. Example: boss@company.com, hr@company.com Also accepts partials like @company.com'
+  description: "\"Comma-separated email addresses. <br />Only show emails from these senders. <br />Example: boss@company.com, hr@company.com<br />"
   placeholder: name@domain.com
   optional: true
+- keyname: read_subject_regular
+  field_type: select
+  name: Display Read Subject As Regular Text
+  options:
+  - 'Yes': 'yes'
+  - 'No': 'no'
+  default: 'no'
+  optional: true
+- keyname: show_sender_email
+  field_type: select
+  name: Show Sender  Email  Address Instead Of Name
+  default: 'no'
+  optional: true
+  options:
+  - 'Yes': 'yes'
+  - 'No': 'no'
 name: Email Messages
 refresh_interval: 60
