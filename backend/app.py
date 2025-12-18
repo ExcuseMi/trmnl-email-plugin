@@ -230,11 +230,15 @@ def fetch_email_messages_sync(server, port, username, password, folder, limit, u
             search_str = build_search_criteria(unread_only, flagged_only, from_emails, gmail_category)
             logger.info(f"Search: {search_str}")
 
+            # OPTIMIZATION: Only fetch headers, not body
+            # This is much faster than fetching full messages
             msg_list = list(mailbox.fetch(
                 criteria=search_str,
                 limit=limit,
                 reverse=True,
-                mark_seen=False
+                mark_seen=False,
+                headers_only=True,  # Only fetch headers!
+                bulk=True  # Bulk fetch for speed
             ))
 
             logger.info(f"Found {len(msg_list)} messages")
