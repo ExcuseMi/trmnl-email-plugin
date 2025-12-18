@@ -77,12 +77,19 @@ def startup_init():
     print("Running startup_init()")
     print("=" * 60)
 
+    logger.info("Starting IMAP Email Reader")
+
     if ENABLE_IP_WHITELIST:
-        logger.info("Starting IMAP Email Reader")
-        logger.info(f"IP Whitelist: {'Enabled' if ENABLE_IP_WHITELIST else 'Disabled'}")
-        fetch_trmnl_ips()
+        logger.info("IP Whitelist: Enabled")
+        try:
+            fetch_trmnl_ips()
+            if allowed_ips:
+                logger.info(f"Startup: Loaded {len(allowed_ips)} whitelisted IPs")
+            else:
+                logger.error("Startup: Failed to load any IPs - whitelist won't work!")
+        except Exception as e:
+            logger.error(f"Startup: Failed to fetch IPs: {e}")
     else:
-        logger.info("Starting IMAP Email Reader")
         logger.info("IP Whitelist: Disabled")
 
     logger.info("Startup Complete - Ready to accept requests")
@@ -114,13 +121,22 @@ def fetch_trmnl_ips():
                 allowed_ips = new_ips
                 last_ip_refresh = datetime.now()
 
-            print(f"[fetch_trmnl_ips] Fetched {len(new_ips)} IPs ({len(ipv4_list)} IPv4, {len(ipv6_list)} IPv6)")
-            logger.info(f"Fetched {len(new_ips)} TRMNL IPs ({len(ipv4_list)} IPv4, {len(ipv6_list)} IPv6)")
+            print(f"[fetch_trmnl_ips] SUCCESS: Fetched {len(new_ips)} IPs ({len(ipv4_list)} IPv4, {len(ipv6_list)} IPv6)")
+            logger.info(f"SUCCESS: Fetched {len(new_ips)} TRMNL IPs ({len(ipv4_list)} IPv4, {len(ipv6_list)} IPv6)")
+
+            # Debug: Show first few IPs
+            sample_ips = list(new_ips)[:3]
+            print(f"[fetch_trmnl_ips] Sample IPs: {sample_ips}")
+            logger.debug(f"Sample IPs: {sample_ips}")
         else:
-            logger.warning("No IPs returned from TRMNL API")
+            print("[fetch_trmnl_ips] ERROR: No IPs returned from API!")
+            logger.error("No IPs returned from TRMNL API")
 
     except Exception as e:
+        print(f"[fetch_trmnl_ips] EXCEPTION: {e}")
         logger.error(f"Failed to fetch TRMNL IPs: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def get_client_ip():
@@ -147,14 +163,18 @@ def require_whitelisted_ip(f):
 
         client_ip = get_client_ip()
 
+        # Check if we need to refresh IPs
         if last_ip_refresh and (datetime.now() - last_ip_refresh).total_seconds() > (IP_REFRESH_HOURS * 3600):
             threading.Thread(target=fetch_trmnl_ips, daemon=True).start()
+
+        # Debug log
+        logger.debug(f"Checking IP: {client_ip}, Whitelist has {len(allowed_ips)} IPs, Match: {client_ip in allowed_ips}")
 
         if client_ip in allowed_ips:
             logger.debug(f"Allowed request from whitelisted IP: {client_ip}")
             return await f(*args, **kwargs)
         else:
-            logger.warning(f"Blocked request from unauthorized IP: {client_ip}")
+            logger.warning(f"Blocked request from unauthorized IP: {client_ip} (whitelist has {len(allowed_ips)} IPs)")
             return jsonify({'error': 'Unauthorized IP address'}), 403
 
     return decorated_function
