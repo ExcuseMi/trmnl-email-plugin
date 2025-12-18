@@ -1,0 +1,111 @@
+{% template email_provider_logo %}
+{% assign classes = classess | default: "image-stroke w--8" %}
+
+{% if email_provider == "gmail" %}
+<svg class="{{classes}}"  xmlns="http://www.w3.org/2000/svg"
+  aria-label="Gmail" role="img"
+  viewBox="0 0 512 512"><rect
+                          rx="15%"
+                          fill="#ffffff"/><path d="M158 391v-142l-82-63V361q0 30 30 30" fill="#4285f4"/><path d="M 154 248l102 77l102-77v-98l-102 77l-102-77" fill="#ea4335"/><path d="M354 391v-142l82-63V361q0 30-30 30" fill="#34a853"/><path d="M76 188l82 63v-98l-30-23c-27-21-52 0-52 26" fill="#c5221f"/><path d="M436 188l-82 63v-98l30-23c27-21 52 0 52 26" fill="#fbbc04"/></svg>
+{% elsif email_provider == "outlook" %}
+<svg class="{{classes}}" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+  viewBox="0 0 16.376 16.376" xml:space="preserve">
+  <g>
+    <g>
+      <path style="fill:#030104;" d="M16.376,6.059c0-0.3-0.215-0.544-0.478-0.544h-4.697v1.087h3.717L12.48,8.611l-1.279-1.048v1.379
+        l1.003,0.813c0.163,0.132,0.392,0.132,0.555-0.001l2.661-2.157v2.873h-4.219v1.087h4.697c0.263,0,0.478-0.243,0.478-0.544V6.541
+        c0-0.013-0.001-0.025-0.002-0.038c0.001-0.013,0.002-0.026,0.002-0.038C16.376,6.465,16.376,6.059,16.376,6.059z"/>
+      <path style="fill:#030104;" d="M5.115,10.433c0.686,0,1.126-0.904,1.126-2.253c0-1.119-0.325-2.253-1.126-2.253
+        c-0.847,0-1.16,1.149-1.16,2.253C3.955,9.467,4.361,10.433,5.115,10.433z"/>
+      <path style="fill:#030104;" d="M0,14.992l10.195,0.748V0.637L0,1.534V14.992z M5.162,4.272c1.741,0,2.902,1.578,2.902,3.831
+        c0,2.743-1.475,4-2.995,4c-1.66,0-2.937-1.44-2.937-3.861C2.133,5.819,3.34,4.272,5.162,4.272z"/>
+    </g>
+  </g>
+</svg>
+{% elsif email_provider == "yahoo" %}
+<svg fill="#000000" class="{{classes}}" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+  viewBox="-271 324 256 153" xml:space="preserve">
+  <g>
+    <path d="M-37.5,356.3c0.1,0,0.2,0,0.2,0l7.1-10.3c-0.1,0-0.3,0-0.4,0l0.7-1.1h-99.9l3.9,15.7h27.3l-46,41.5
+      c-9.4-13-31.4-39.9-46.7-62.3h34.4v-12l0.4-2.6c-0.1,0-0.3-0.1-0.4-0.1V324H-271v15.8h33.8c13.1,10.3,63.4,73,65.4,79.2
+      c0.8,5.9,1.6,40.4-0.9,43c-4.9,5.2-27.5,3.8-32.9,4.2l-1.9,10.7c9.9,0.3,42.2-0.8,52.2-0.8c19.8,0,54.4-0.1,59.3,0.3l0.6-11.2
+      c-5-0.8-32.3-0.1-36-1c-0.8-5.4-1.7-41.8-0.9-45.6c3.9-10.9,61.2-55.1,67.5-56.8c1.4-0.3,3.5-0.8,5.9-1.3h18.5L-37.5,356.3z"/>
+    <path d="M-48.2,447.8l15.3,1.2l17.9-69c-3-0.1-30.1-2.7-33.6-3.3L-48.2,447.8z"/>
+    <polygon points="-50.8,458.9 -50.7,475.7 -43,476.4 -34.6,477 -32.1,460.5 -41,460.1 	"/>
+  </g>
+</svg>
+{% elsif email_provider == "icloud" %}
+<svg  class="{{classes}}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 52"><linearGradient id="grad"><stop stop-color="#3e82f4" offset="0"/><stop stop-color="#93dcf7" offset="1"/></linearGradient><path fill="url(#grad)" d="M45.864 0.751A21.52 21.52 0 0 0 27.128 11.765 11.804 11.804 0 0 0 21.976 10.573 11.804 11.804 0 0 0 10.355 20.489 16.255 16.255 0 0 0 0.378 35.482 16.255 16.255 0 0 0 16.641 51.721a16.255 16.255 0 0 0 2.039-0.147h45.188a15.13 15.202 0 0 0 1.395-0.034h1.082V51.494A15.13 15.202 0 0 0 79.703 36.407V36.377A15.13 15.202 0 0 0 67.386 21.477 21.52 21.52 0 0 0 45.864 0.751Z"/></svg>
+{% else %}
+<svg class="{{classes}}" fill="#000000" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+  <path d="M1920 428.266v1189.54l-464.16-580.146-88.203 70.585 468.679 585.904H83.684l468.679-585.904-88.202-70.585L0 1617.805V428.265l959.944 832.441L1920 428.266ZM1919.932 226v52.627l-959.943 832.44L.045 278.628V226h1919.887Z" fill-rule="evenodd"/>
+</svg>
+{% endif %}
+{% endtemplate %}
+
+<div class="layout layout--stretch layout--center">
+  {% if data.error %}
+  <div class="flex flex--col">
+  <div class="description">{{data.error}}</div>
+  </div>
+  {% else %}
+  <div class="columns" data-overflow-cols="2">
+    <div class="column">
+      {% for message in data.messages %}
+      <div class="item item--emphasis-x{% if message.read %}2{% else %}1{%endif %} ">
+        <div class="meta w--8">
+          {% if message.flagged %}
+          <svg class="image-stroke" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 9.95557V11.9556M12 14.9556H12.01M8.77835 9.01795L4.27406 9.49336C3.70856 9.55304 3.42581 9.58288 3.29993 9.71147C3.19059 9.82316 3.13978 9.97956 3.16258 10.1342C3.18884 10.3122 3.40005 10.5025 3.82246 10.8832L7.18708 13.9154C7.31195 14.0279 7.37439 14.0842 7.41394 14.1527C7.44894 14.2134 7.47081 14.2807 7.47814 14.3503C7.48642 14.429 7.46898 14.5112 7.4341 14.6757L6.49434 19.1064C6.37635 19.6627 6.31736 19.9408 6.40075 20.1002C6.47319 20.2388 6.60623 20.3354 6.76034 20.3615C6.93775 20.3915 7.18404 20.2495 7.67662 19.9654L11.6001 17.7024C11.7457 17.6184 11.8185 17.5765 11.8959 17.56C11.9644 17.5455 12.0352 17.5455 12.1037 17.56C12.1811 17.5765 12.2539 17.6184 12.3995 17.7024L16.323 19.9654C16.8156 20.2495 17.0619 20.3915 17.2393 20.3615C17.3934 20.3354 17.5264 20.2388 17.5989 20.1002C17.6823 19.9408 17.6233 19.6627 17.5053 19.1064L16.5655 14.6757C16.5306 14.5112 16.5132 14.429 16.5215 14.3503C16.5288 14.2807 16.5507 14.2134 16.5857 14.1527C16.6252 14.0842 16.6877 14.0279 16.8125 13.9154L20.1772 10.8832C20.5996 10.5025 20.8108 10.3122 20.837 10.1342C20.8598 9.97956 20.809 9.82316 20.6997 9.71147C20.5738 9.58288 20.2911 9.55304 19.7256 9.49336L15.2213 9.01795C15.0541 9.00031 14.9705 8.99149 14.8982 8.95929C14.8343 8.93081 14.777 8.8892 14.7302 8.83718C14.6772 8.77839 14.643 8.70162 14.5745 8.54808L12.7305 4.41115C12.499 3.89177 12.3832 3.63208 12.222 3.55211C12.082 3.48263 11.9176 3.48263 11.7776 3.55211C11.6164 3.63208 11.5006 3.89177 11.2691 4.41115L9.42508 8.54808C9.35663 8.70162 9.32241 8.77839 9.26946 8.83718C9.2226 8.8892 9.16534 8.93081 9.10139 8.95929C9.02911 8.99149 8.94553 9.00031 8.77835 9.01795Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {% elsif message.read %}
+          <svg class="image-stroke" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 9.00005L10.2 13.65C11.2667 14.45 12.7333 14.45 13.8 13.65L20 9" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 9.17681C3 8.45047 3.39378 7.78123 4.02871 7.42849L11.0287 3.5396C11.6328 3.20402 12.3672 3.20402 12.9713 3.5396L19.9713 7.42849C20.6062 7.78123 21 8.45047 21 9.17681V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V9.17681Z" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          {% else %}
+          <svg class="image-stroke" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          {% endif %}
+        </div>
+        <div class="content">
+          {% assign subject_classes = "title title--small" %}
+          {% if message.read and trmnl.plugin_settings.custom_fields_values.read_subject_regular == "true" %}
+                    {% assign subject_classes = "description" %}
+          {% endif %}
+          <span class="{{subject_classes}}">
+            {{message.subject}}</span>
+
+
+          <div class="flex gap--small">
+            {% assign offset_seconds = trmnl.user.utc_offset %}
+            {% assign timestamp_epoch = message.timestamp | date: "%s" | plus: 0 %}
+            {% assign adjusted_epoch = timestamp_epoch | plus: offset_seconds %}
+            {% assign local_time = adjusted_epoch  | date: "%Y-%m-%dT%H:%M:%S%z" | l_date: "short", locale %}
+
+            <span class="label label--small">{{local_time}}, </span>
+            <span class="label label--small label--underline">
+              {% if trmnl.plugin_settings.custom_fields_values.show_sender_email == "true" %}
+              {{message.sender_email}}
+              {% else %}
+              {{message.sender}}
+              {% endif %}
+            </span>
+
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<div class="title_bar">
+  {% render "email_provider_logo": email_provider: trmnl.plugin_settings.custom_fields_values.provider %}
+
+  <span class="title text-stroke">{{trmnl.plugin_settings.custom_fields_values.email | upcase }}</span>
+  <span class="instance">{{data.folder | upcase }}{% if data.gmail_category %}/{{data.gmail_category | upcase }}{% endif %}</span>
+</div>
+<script />

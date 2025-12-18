@@ -1,0 +1,147 @@
+---
+strategy: polling
+no_screen_padding: 'no'
+dark_mode: 'no'
+static_data: ''
+polling_verb: post
+polling_url: https://trmnl.bettens.dev/email/messages
+polling_headers: content-type=application/json
+polling_body: "{\r\n  {% if provider == \"gmail\" %}\r\n  \"server\": \"imap.gmail.com\",\r\n  \"port\": 993,\r\n  \"password\": {{gmail_password | json}}\r\n  {% elsif provider == \"outlook\" %}\r\n  \"server\": \"outlook.office365.com\",\r\n  \"port\": 993,\r\n  \"password\": {{outlook_password | json}}\r\n  {% elsif provider == \"yahoo\" %}\r\n  \"server\": \"imap.mail.yahoo.com\",\r\n  \"port\": 993,\r\n  \"password\": {{yahoo_password | json}}\r\n  {% elsif provider == \"icloud\" %}\r\n  \"server\": \"imap.mail.me.com\",\r\n  \"port\": 993,\r\n  \"password\": {{icloud_password | json}}\r\n  {% elsif provider == \"custom\" %}\r\n  \"server\": {{custom_server | json}},\r\n  \"port\": {{custom_port | default: 993 | plus: 0}},\r\n  \"password\": {{custom_password | json}}\r\n  {% endif %},\r\n  \"username\": {{email | json}},\r\n  \"folder\": {{folder | default: \"INBOX\" | json}},\r\n  \"limit\": {{limit | default: 10 | plus: 0}},\r\n  \"unread_only\": {{unread_only | default: false}},\r\n  \"flagged_only\": {{flagged_only | default: false}}\r\n  {% if provider == \"gmail\" and gmail_category and gmail_category != \"\" %},\r\n  \"gmail_category\": {{gmail_category | json}}\r\n  {% endif %}\r\n  {% if from_emails and from_emails != \"\" %},\r\n  \"from_emails\": {{from_emails | json}}\r\n  {% endif %}\r\n}"
+id: 198482
+custom_fields:
+- keyname: provider
+  field_type: select
+  name: Provider
+  options:
+  - Gmail: gmail
+  - Outlook: outlook
+  - Yahoo: yahoo
+  - iCloud: icloud
+  - Custom: custom
+  default: gmail
+  conditional_validation:
+  - when: gmail
+    hidden:
+    - outlook_password
+    - yahoo_password
+    - icloud_password
+    - custom_password
+    - custom_server
+    - custom_port
+  - when: outlook
+    hidden:
+    - gmail_password
+    - gmail_category
+    - yahoo_password
+    - icloud_password
+    - custom_password
+    - custom_server
+    - custom_port
+  - when: yahoo
+    hidden:
+    - gmail_password
+    - gmail_category
+    - outlook_password
+    - icloud_password
+    - custom_password
+    - custom_server
+    - custom_port
+  - when: icloud
+    hidden:
+    - gmail_password
+    - gmail_category
+    - outlook_password
+    - yahoo_password
+    - custom_password
+    - custom_server
+    - custom_port
+  - when: custom
+    hidden:
+    - gmail_password
+    - gmail_category
+    - outlook_password
+    - yahoo_password
+    - icloud_password
+- keyname: email
+  field_type: string
+  name: Email Address
+  description: Your full email address
+- keyname: gmail_password
+  field_type: password
+  name: Gmail App Password
+  description: Generate at <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a>
+- keyname: outlook_password
+  field_type: password
+  name: Outlook Password
+  description: Your Outlook/Office365 password<br /><a href='https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040'>Enable IMAP</a><br /><a href='https://account.live.com/proofs/AppPassword'>Create an App Password</a>
+- keyname: yahoo_password
+  field_type: password
+  name: Yahoo App Password
+  description: Generate app password in Yahoo security settings
+- keyname: icloud_password
+  field_type: password
+  name: iCloud App-Specific Password
+  description: Generate at <a href="https://appleid.apple.com" target="_blank">Apple ID</a>
+- keyname: custom_password
+  field_type: password
+  name: Password
+- keyname: custom_server
+  field_type: string
+  name: IMAP Server
+  description: e.g., imap.example.com
+- keyname: custom_port
+  field_type: number
+  name: IMAP Port
+  default: 993
+  description: Usually 993 for SSL/TLS
+- keyname: folder
+  field_type: string
+  name: Folder
+  default: INBOX
+  description: Mailbox folder to read from
+- keyname: gmail_category
+  field_type: select
+  name: Gmail Category Filter
+  default: ''
+  description: Filter emails by Gmail tab (Gmail only)
+  options:
+  - All (no filter): ''
+  - Primary: Primary
+  - Social: Social
+  - Promotions: Promotions
+  - Updates: Updates
+  - Forums: Forums
+- keyname: limit
+  field_type: number
+  name: Number of messages
+  default: 10
+  description: How many emails to display (max 50)
+- keyname: unread_only
+  field_type: boolean
+  name: Show only unread messages
+  optional: true
+  default: false
+- keyname: read_subject_regular
+  field_type: boolean
+  name: Display Read Subject As Regular Text
+  optional: true
+  default: true
+- keyname: show_sender_email
+  field_type: boolean
+  name: Show sender email address instead of the name
+  optional: true
+  default: false
+- keyname: flagged_only
+  field_type: boolean
+  name: Flagged/Important Only
+  description: Only show flagged/starred emails
+  optional: true
+  default: false
+- keyname: from_emails
+  field_type: multi_string
+  name: Filter by Sendering emails
+  description: 'Comma-separated email addresses. Only show emails from these senders. Example: boss@company.com, hr@company.com'
+  optional: true
+  placeholder: name@domain.com
+name: Email Messages
+refresh_interval: 60
