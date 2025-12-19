@@ -9,6 +9,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    depends_on:
+      - redis
     container_name: imap-reader
     ports:
       - "5005:5000"
