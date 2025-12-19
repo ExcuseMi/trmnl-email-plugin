@@ -127,7 +127,6 @@ def get_redis_client():
 async def fetch_trmnl_ips():
     """Fetch current TRMNL server IPs from their API"""
     try:
-        print(f"[fetch_trmnl_ips] Fetching from {TRMNL_IPS_API}", flush=True)
         logger.info(f"Fetching TRMNL IPs from {TRMNL_IPS_API}")
 
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -145,13 +144,11 @@ async def fetch_trmnl_ips():
             ipv4_count = len(ipv4_list)
             ipv6_count = len(ipv6_list)
 
-            print(f"[fetch_trmnl_ips] Fetched {len(ips)} IPs ({ipv4_count} IPv4, {ipv6_count} IPv6)", flush=True)
             logger.info(f"Fetched {len(ips)} TRMNL IPs ({ipv4_count} IPv4, {ipv6_count} IPv6)")
             logger.debug(f"Whitelisted IPs: {sorted(list(ips))}")
             return ips
 
     except Exception as e:
-        print(f"[fetch_trmnl_ips] ERROR: {e}", flush=True)
         logger.error(f"Failed to fetch TRMNL IPs: {e}")
         logger.warning("IP whitelist will use fallback IPs only")
         return set(LOCALHOST_IPS)
@@ -752,7 +749,6 @@ def register_routes(app):
     @require_whitelisted_ip
     async def get_messages():
         """Get latest email messages via IMAP (fully async with caching)"""
-        print(f"[/messages] Received {request.method} request", flush=True)
         logger.info(f"Received {request.method} request to /messages from {get_client_ip()}")
 
         params, error, status_code = get_request_params()
@@ -760,14 +756,13 @@ def register_routes(app):
             logger.warning(f"Invalid request parameters: {error}")
             return jsonify(error), status_code
 
-        print(f"[/messages] Params: server={params['server']}, folder={params['folder']}", flush=True)
         logger.info(f"Request params: server={params['server']}, folder={params['folder']}, limit={params['limit']}, unread_only={params['unread_only']}, flagged_only={params['flagged_only']}, gmail_category={params.get('gmail_category')}, from_emails={params.get('from_emails')}")
 
         # Check cache first
         cache_key = generate_cache_key(params)
         cached_response = get_cached_response(cache_key)
         if cached_response:
-            print(f"[/messages] Returning cached response", flush=True)
+            logger.info("Returning cached response")
             return jsonify(cached_response)
 
         try:
@@ -804,20 +799,12 @@ def register_routes(app):
             # Cache the response
             cache_response(cache_key, response_data)
 
-            # Debug: Log first message to verify sender_email is present
-            if messages:
-                print(f"[DEBUG] First message keys: {list(messages[0].keys())}", flush=True)
-                print(f"[DEBUG] First message sender_email: {messages[0].get('sender_email', 'MISSING!')}", flush=True)
-                logger.info(f"First message contains: {messages[0]}")
-
-            print(f"[/messages] Successfully fetched {len(messages)} messages", flush=True)
             logger.info(f"Successfully fetched {len(messages)} messages")
             return jsonify(response_data)
 
         except Exception as e:
             error_msg = str(e)
             status_code = 401 if 'authentication' in error_msg.lower() or 'login' in error_msg.lower() else 500
-            print(f"[/messages] ERROR: {error_msg}", flush=True)
             logger.error(f"Request failed with status {status_code}: {error_msg}")
             return jsonify({'error': error_msg}), status_code
 
@@ -866,18 +853,12 @@ def register_routes(app):
         logger.warning("⚠️  WARNING: Test warning message")
         logger.error("❌ ERROR: Test error message")
 
-        # Direct stdout/stderr test
-        print("DIRECT STDOUT: Print test", flush=True)
-        print("DIRECT STDERR: Stderr test", file=sys.stderr, flush=True)
-
         return jsonify({
             'status': 'ok',
-            'message': 'Check your logs - you should see 4 log messages + 2 print statements',
+            'message': 'Check your logs - you should see 4 log messages',
             'config': {
                 'pythonunbuffered': os.getenv('PYTHONUNBUFFERED'),
-                'log_level': LOG_LEVEL,
-                'stdout_line_buffering': sys.stdout.line_buffering,
-                'stderr_line_buffering': sys.stderr.line_buffering
+                'log_level': LOG_LEVEL
             }
         })
 
@@ -886,22 +867,18 @@ def register_routes(app):
 app = create_app()
 
 # Print immediately to confirm app is loading
-print("=" * 60, flush=True)
-print("IMAP Email Reader - Module Loading", flush=True)
-print(f"Python: {sys.version}", flush=True)
-print(f"PYTHONUNBUFFERED: {os.getenv('PYTHONUNBUFFERED')}", flush=True)
-print(f"LOG_LEVEL: {LOG_LEVEL}", flush=True)
-print("=" * 60, flush=True)
+logger.info("=" * 60)
+logger.info("IMAP Email Reader - Module Loading")
+logger.info(f"Python: {sys.version}")
+logger.info(f"PYTHONUNBUFFERED: {os.getenv('PYTHONUNBUFFERED')}")
+logger.info(f"LOG_LEVEL: {LOG_LEVEL}")
+logger.info("=" * 60)
 
 
 # Initialize TRMNL IPs on startup
 async def startup_init():
     """Initialize TRMNL IPs on startup"""
     global TRMNL_IPS, last_ip_refresh
-
-    print("=" * 60, flush=True)
-    print("Running startup_init()", flush=True)
-    print("=" * 60, flush=True)
 
     logger.info("=" * 60)
     logger.info("Starting IMAP Email Reader")
@@ -937,14 +914,13 @@ async def startup_init():
 
 # Run startup initialization
 try:
-    print("About to run startup initialization...", flush=True)
+    logger.info("Running startup initialization...")
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(startup_init())
     loop.close()
-    print("Startup initialization complete!", flush=True)
+    logger.info("Startup initialization complete!")
 except Exception as e:
-    print(f"ERROR in startup: {e}", flush=True)
     logger.error(f"Startup error: {e}")
     logger.warning("Continuing with fallback IPs (localhost only)")
 
