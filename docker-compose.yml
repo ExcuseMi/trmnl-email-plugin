@@ -1,4 +1,10 @@
 services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
   imap-reader:
     build:
       context: ./backend
@@ -23,3 +29,5 @@ services:
 networks:
   imap-network:
     driver: bridge
+volumes:
+  redis_data:

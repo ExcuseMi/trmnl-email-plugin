@@ -17,12 +17,22 @@ import httpx
 import threading
 import logging
 import sys
+import hashlib
+import json
+import redis
 
 
 # Configuration
 ENABLE_IP_WHITELIST = os.getenv('ENABLE_IP_WHITELIST', 'true').lower() == 'true'
 IP_REFRESH_HOURS = int(os.getenv('IP_REFRESH_HOURS', '24'))
-LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG').upper()  # Changed to DEBUG for debugging
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG').upper()
+
+# Cache configuration
+ENABLE_CACHE = os.getenv('ENABLE_CACHE', 'true').lower() == 'true'
+CACHE_TTL_SECONDS = int(os.getenv('CACHE_TTL_SECONDS', '300'))  # 5 minutes default
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))
+REDIS_DB = int(os.getenv('REDIS_DB', '0'))
 
 # TRMNL API endpoint for IP addresses
 TRMNL_IPS_API = 'https://usetrmnl.com/api/ips'
@@ -58,6 +68,27 @@ last_ip_refresh = None
 
 # Always allow localhost
 LOCALHOST_IPS = ['127.0.0.1', '::1']
+
+# Redis cache client (shared across all workers)
+redis_client = None
+if ENABLE_CACHE:
+    try:
+        redis_client = redis.Redis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            db=REDIS_DB,
+            decode_responses=True,  # Get strings instead of bytes
+            socket_connect_timeout=2,
+            socket_timeout=2
+        )
+        # Test connection
+        redis_client.ping()
+        logger.info(f"Connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
+    except Exception as e:
+        logger.warning(f"Redis connection failed: {e}")
+        logger.warning("Cache will be DISABLED")
+        ENABLE_CACHE = False
+        redis_client = None
 
 
 async def fetch_trmnl_ips():
@@ -137,6 +168,69 @@ def start_ip_refresh_worker():
     )
     worker_thread.start()
     logger.info(f"Started IP refresh worker (refresh every {IP_REFRESH_HOURS} hours)")
+
+
+def generate_cache_key(params):
+    """Generate a unique cache key from request parameters"""
+    # Create a deterministic string from all relevant parameters
+    cache_data = {
+        'server': params['server'],
+        'port': params['port'],
+        'username': params['username'],
+        'folder': params['folder'],
+        'limit': params['limit'],
+        'unread_only': params['unread_only'],
+        'flagged_only': params['flagged_only'],
+        'gmail_category': params.get('gmail_category'),
+        'from_emails': sorted(params.get('from_emails', [])) if params.get('from_emails') else []
+    }
+
+    # Create hash from sorted JSON (for consistency)
+    cache_str = json.dumps(cache_data, sort_keys=True)
+    cache_hash = hashlib.md5(cache_str.encode()).hexdigest()
+
+    # Prefix with namespace for better organization
+    return f"imap:cache:{cache_hash}"
+
+
+def get_cached_response(cache_key):
+    """Retrieve cached response from Redis if valid"""
+    if not ENABLE_CACHE or not redis_client:
+        return None
+
+    try:
+        cached_json = redis_client.get(cache_key)
+        if cached_json:
+            cached_data = json.loads(cached_json)
+            logger.info(f"Cache HIT (key: {cache_key[-12:]}...)")
+            return cached_data
+        else:
+            logger.debug(f"Cache MISS (key: {cache_key[-12:]}...)")
+            return None
+    except Exception as e:
+        logger.error(f"Cache read error: {e}")
+        return None
+
+
+def cache_response(cache_key, response_data):
+    """Store response in Redis with TTL"""
+    if not ENABLE_CACHE or not redis_client:
+        return
+
+    try:
+        # Store as JSON with expiration
+        redis_client.setex(
+            cache_key,
+            CACHE_TTL_SECONDS,
+            json.dumps(response_data)
+        )
+
+        # Get cache stats
+        cache_size = redis_client.dbsize()
+        logger.debug(f"Cached response (key: {cache_key[-12:]}..., total keys: {cache_size})")
+    except Exception as e:
+        logger.error(f"Cache write error: {e}")
+
 
 
 def get_allowed_ips():
@@ -595,7 +689,7 @@ def register_routes(app):
     @app.route('/messages', methods=['GET', 'POST'])
     @require_whitelisted_ip
     async def get_messages():
-        """Get latest email messages via IMAP (fully async)"""
+        """Get latest email messages via IMAP (fully async with caching)"""
         print(f"[/messages] Received {request.method} request", flush=True)
         logger.info(f"Received {request.method} request to /messages from {get_client_ip()}")
 
@@ -606,6 +700,13 @@ def register_routes(app):
 
         print(f"[/messages] Params: server={params['server']}, folder={params['folder']}", flush=True)
         logger.info(f"Request params: server={params['server']}, folder={params['folder']}, limit={params['limit']}, unread_only={params['unread_only']}, flagged_only={params['flagged_only']}, gmail_category={params.get('gmail_category')}, from_emails={params.get('from_emails')}")
+
+        # Check cache first
+        cache_key = generate_cache_key(params)
+        cached_response = get_cached_response(cache_key)
+        if cached_response:
+            print(f"[/messages] Returning cached response", flush=True)
+            return jsonify(cached_response)
 
         try:
             messages = await fetch_email_messages(
@@ -637,6 +738,9 @@ def register_routes(app):
 
             if params['from_emails']:
                 response_data['from_emails'] = params['from_emails']
+
+            # Cache the response
+            cache_response(cache_key, response_data)
 
             # Debug: Log first message to verify sender_email is present
             if messages:
@@ -751,6 +855,12 @@ async def startup_init():
         start_ip_refresh_worker()
     else:
         logger.warning("IP whitelist is disabled - all IPs will be allowed!")
+
+    # Log cache status
+    if ENABLE_CACHE and redis_client:
+        logger.info(f"Cache: ENABLED via Redis (TTL: {CACHE_TTL_SECONDS}s, Host: {REDIS_HOST}:{REDIS_PORT})")
+    else:
+        logger.info("Cache: DISABLED")
 
     logger.info("=" * 60)
     logger.info("Startup Complete - Ready to accept requests")
