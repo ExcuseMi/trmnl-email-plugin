@@ -189,6 +189,8 @@
 <div class="title_bar">
   {% render "email_provider_logo": email_provider: trmnl.plugin_settings.custom_fields_values.provider %}
   <span class="title text-stroke">{{ data.email | default: trmnl.plugin_settings.custom_fields_values.email }}</span>
+  {% assign show_instance = show_instance | default: "yes" %}
+  {% if show_instance == "yes" %}
   <span class="instance">
     <div class="flex flex--row gap--small flex--right flex--center-y">
       <svg class="image-stroke w--8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -205,6 +207,7 @@
     </div>
 
   </span>
+  {% endif %}
 </div>
 
 <script />
