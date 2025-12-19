@@ -36,6 +36,18 @@ docker-compose up -d
 ENABLE_IP_WHITELIST=true    # Restrict access to TRMNL IPs only
 IP_REFRESH_HOURS=24         # How often to refresh IP whitelist
 LOG_LEVEL=INFO              # Logging verbosity
+HYPERCORN_WORKERS=4         # How many workers for the webserver
+# Enable/disable caching
+ENABLE_CACHE=true
+# Cache time-to-live in seconds (default: 300 = 5 minutes)
+CACHE_TTL_SECONDS=300
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=0
+MAX_MESSAGES_LIMIT=30
+IMAP_CONNECT_TIMEOUT=10
+IMAP_LOGIN_TIMEOUT=15
+IMAP_FETCH_TIMEOUT=30
 
 ```
 
