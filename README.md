@@ -85,7 +85,7 @@ MIT License - See LICENSE file for details
 <!-- PLUGIN_STATS_START -->
 ## 🚀 TRMNL Plugin
 
-*Last updated: 2025-12-26 06:27:20 UTC*
+*Last updated: 2025-12-27 06:25:45 UTC*
 
 
 ## <img src="assets/plugin-images/198482_icon.png" alt="Email Messages icon" width="32"/> [Email Messages](https://usetrmnl.com/recipes/198482)
